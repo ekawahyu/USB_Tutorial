@@ -29,10 +29,18 @@ int main(void)
 	/* Start USB IP */
 	usb_init_device();
 	/* Init GPIO for LED*/
+#ifdef ATMEGA32U2
+	DDRD |= (1<<6);
+#else
 	DDRB |= (1<<0);
+#endif
 
 	while (1) {
+#ifdef ATMEGA32U2
+		PORTD ^= (1<<6);
+#else
 		PORTB ^= (1<<0);
+#endif
 		_delay_ms(500);
 	}
 }
