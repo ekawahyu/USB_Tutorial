@@ -57,14 +57,21 @@ ISR(USB_COM_vect) {
  * @brief USB-Aktivierung (Full-Speed 12Mbit/s) und Interrupts erlauben
  */
 void usb_init_device(void) {
+#ifdef ATMEGA32U2
+	USBCON = ((1<<USBE) | (1<<FRZCLK));
+#else
 	UHWCON = (1<<UVREGE); /* Enable USB Pad regulator */
 	USBCON = ((1<<USBE) | (1<<FRZCLK) | (1<<OTGPADE)); /* Enable USB power */
-
+#endif
 	USBCON &= ~(1<<FRZCLK); /* Toggle FRZCLK to get WAKEUP IRQ */
 	USBCON |= (1<<FRZCLK);  
 	/* Start PLL */
+#ifdef ATMEGA32U2
+	PLLCSR = (1<<PLLE)|(1<<PLLP0);
+#else
 	PLLCSR = PLLPRE;      /* PLL Prescaler -> Set PINDIV=1 for 16MHz */
 	PLLCSR |= (1<<PLLE);  /* Enable PLL */
+#endif
 	while (!(PLLCSR &(1<<PLOCK)));     /* Wait for PLL to lock */
 	USBCON &= ~(1<<FRZCLK); /* Leave Power Saving mode */
 	UDCON = 0; /* Attach device */
@@ -209,31 +216,29 @@ void usb_ep0_setup(void) {
 			/* GET_DESCRIPTOR 3 Phasen Transfer */
 			switch (wValue_h) {
 			case 1: /* Device-Descriptor */
-				des_bytes = pgm_read_byte(&dev_des[0]);	      
+				des_bytes = length;	      
 				usb_send_descriptor((uint8_t*) dev_des,des_bytes);         
 				break;
 			case 2: /* Configuration-Descriptor */
-				des_bytes = wLength_l;
-				if (wLength_h || (wLength_l > wTotalLength) || (wLength_l == 0)) 
-					des_bytes = wTotalLength;
+				des_bytes = length;
 				usb_send_descriptor((uint8_t*) conf_des,des_bytes);
 				break;
 			case 3: /* String-Descriptor */
 				switch (wValue_l) {
 				case Lang_i:
-					des_bytes = pgm_read_byte(&lang_des[0]);
+					des_bytes = length;
 					usb_send_descriptor((uint8_t*) lang_des,des_bytes);
 					break;
 				case Manu_i:
-					des_bytes = pgm_read_byte(&manu_des[0]);
+					des_bytes = length;
 					usb_send_descriptor((uint8_t*) manu_des,des_bytes);
 					break;
 				case Prod_i:
-					des_bytes = pgm_read_byte(&prod_des[0]);
+					des_bytes = length;
 					usb_send_descriptor((uint8_t*) prod_des,des_bytes);
 					break;
 				case Seri_i:
-					des_bytes = pgm_read_byte(&seri_des[0]);
+					des_bytes = length;
 					usb_send_descriptor((uint8_t*) seri_des,des_bytes);
 					break;              
 				default: break;
