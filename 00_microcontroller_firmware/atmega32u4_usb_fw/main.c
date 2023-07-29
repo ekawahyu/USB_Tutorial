@@ -33,10 +33,17 @@ int main(void)
 	uint8_t val;
 	struct gpio_pin segments[] = {
 		{1, &DDRD, &PORTD},
+#ifdef ATMEGA32U2
+		{2, &DDRD, &PORTD},
+		{3, &DDRD, &PORTD},
+		{5, &DDRD, &PORTD},
+		{6, &DDRD, &PORTD},
+#else
 		{4, &DDRF, &PORTF},
 		{5, &DDRF, &PORTF},
 		{6, &DDRF, &PORTF},
 		{7, &DDRF, &PORTF},
+#endif
 		{0, &DDRD, &PORTD},
 		{4, &DDRD, &PORTD},
 	};
